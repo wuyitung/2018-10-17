@@ -22,3 +22,9 @@ b
 民國年月<-c("099/01","099/02","099/03")
 ```
 
+```{r}
+library(googlesheets)
+gs_auth (new_user = TRUE)
+        
+```
+
