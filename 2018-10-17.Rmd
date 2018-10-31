@@ -1,7 +1,33 @@
 ---
-title: "R Notebook"
-output: html_notebook
+title: "ch5"
+author: "吳翊彤"
+date: "10/31/2018"
+output: html_document
 ---
+
+```{r}
+library(googlesheets)
+gs_auth(new_user = TRUE)
+gsSurvey<-gs_key("1mC9bnxj11NCNoOCw0Vmn4nxERbHtLjeGo9v9C9b2GDE")  #download sheet information as an object
+classSurvey<-gs_read(gsSurvey,ws=1) #access the 1st worksheet
+```
+
+```{r}
+library(stringr)
+aa<-(str_sub(classSurvey$居住地行政區,1,3))
+classSurvey[aa == "台北市",c("姓名")]
+```
+
+```{r}
+cc<-classSurvey[aa == "台北市",c("姓名")]
+class(cc)
+cc$姓名[3]
+```
+
+```{r}
+bb<-c("a","b","c")
+bb[2]
+```
 
 ```{r}
 StuDF <- data.frame(
@@ -13,59 +39,31 @@ StuDF
 ```
 
 ```{r}
-names(StuDF) 
-colnames(StuDF)
+names(gsSurvey)
 ```
 
 ```{r}
-rownames(StuDF)
+gsSurvey$links$type
 ```
 
 ```{r}
-StuDF[1,2]
-StuDF[,2]
-StuDF[1,]
-StuDF[c(1,4),]
-StuDF[c(1,4),c(2,3)]
+names(StuDF)[2] <- c("姓名")
+names(StuDF)
 ```
 
 ```{r}
-StuDF[c(1,4),]
-StuDF[-c(1,4),]
+names(StuDF) <- c("學號","姓名","成績")
+names(StuDF)
 ```
 
 ```{r}
-c(1:3) # same as c(1,2,3)
-c(5:7) # same as c(5,6,7)
-c(1,5:7,10) #same as c(1,5,6,7,10)
+library(readr)
+student <- read_csv("https://raw.githubusercontent.com/tpemartin/course-107-1-programming-for-data-science/master/data/student.csv")
+library(dplyr)
+library(magrittr)
+student %<>% mutate(
+  身高級距=cut(身高,c(0,150,155,160,165,170,175,180,185,200)))
 ```
-
 ```{r}
-StuDF[c(T,F,F,F,F),c(F,T,F)]
-StuDF[c(T,F,F,T,F),]
+levels(student$身高級距)
 ```
-
-```{r}
-a<-c(T,T,F,F,T,F,F)
-sum(a)
-```
-
-```{r}
-(StuDF$score >= 80)
-(StuDF$name == "小新")
-```
-
-```{r}
-which(StuDF$score >= 80)
-which(StuDF$name == "小新")
-```
-
-```{r}
-(classSurvey$性別 == "男")
-
-(classSurvey$本學期學分數 > 20)
-
-(classSurvey$性別 == "男" | 
-    classSurvey$本學期學分數 > 20)
-```
-
