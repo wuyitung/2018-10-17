@@ -1,69 +1,68 @@
 ---
-title: "ch5"
-author: "吳翊彤"
-date: "10/31/2018"
-output: html_document
+title: "R Notebook"
+output: html_notebook
 ---
-
 ```{r}
-library(googlesheets)
-gs_auth(new_user = TRUE)
-gsSurvey<-gs_key("1mC9bnxj11NCNoOCw0Vmn4nxERbHtLjeGo9v9C9b2GDE")  #download sheet information as an object
-classSurvey<-gs_read(gsSurvey,ws=1) #access the 1st worksheet
+library(dplyr)
+mutate(
+  collegeData,
+  學校代碼=as.factor(學校代碼),
+  學校名稱=as.factor(學校名稱)
+  ) -> collegeData2
 ```
-
 ```{r}
-library(stringr)
-aa<-(str_sub(classSurvey$居住地行政區,1,3))
-classSurvey[aa == "台北市",c("姓名")]
+collegeData %>% 
+  mutate(
+    `日間∕進修別`=as.factor(`日間∕進修別`),
+    等級別=as.factor(等級別),
+    一年級男生=as.numeric(一年級男生),
+    一年級女生=as.numeric(一年級女生)
+  ) -> collegeData3
 ```
-
-```{r}
-cc<-classSurvey[aa == "台北市",c("姓名")]
-class(cc)
-cc$姓名[3]
-```
-
-```{r}
-bb<-c("a","b","c")
-bb[2]
-```
-
-```{r}
-StuDF <- data.frame(
-  StuID=c(1,2,3,4,5),
-  name=c("小明","大雄","胖虎","小新","大白"),
-  score=c(80,60,90,70,50)
-  )
-StuDF 
-```
-
-```{r}
-names(gsSurvey)
-```
-
-```{r}
-gsSurvey$links$type
-```
-
-```{r}
-names(StuDF)[2] <- c("姓名")
-names(StuDF)
-```
-
-```{r}
-names(StuDF) <- c("學號","姓名","成績")
-names(StuDF)
-```
-
 ```{r}
 library(readr)
-student <- read_csv("https://raw.githubusercontent.com/tpemartin/course-107-1-programming-for-data-science/master/data/student.csv")
-library(dplyr)
-library(magrittr)
-student %<>% mutate(
-  身高級距=cut(身高,c(0,150,155,160,165,170,175,180,185,200)))
+cl<-locale(grouping_mark = ",") # 創造cl來描述千分位符號使用","的習慣場景
+collegeData %>% 
+  mutate(
+    `日間∕進修別`=as.factor(`日間∕進修別`),
+    等級別=as.factor(等級別),
+    一年級男生=parse_number(一年級男生,locale=cl),
+    一年級女生=parse_number(一年級女生,locale=cl)
+  ) -> collegeData4
 ```
 ```{r}
-levels(student$身高級距)
+problems(collegeData4$一年級男生)
 ```
+```{r}
+collegeData %>% 
+  mutate(
+    `日間∕進修別`=as.factor(`日間∕進修別`),
+    等級別=as.factor(等級別),
+    一年級男生=parse_number(一年級男生,locale=cl),
+    一年級女生=parse_number(一年級女生,locale=cl)
+  ) -> collegeData4
+
+collegeData4 %>%
+  mutate(
+    一年級男生每千人=一年級男生/1000,
+    一年級女生每千人=一年級女生/1000
+    ) -> collegeData5
+```
+```{r}
+collegeData %>% 
+  mutate(
+    `日間∕進修別`=as.factor(`日間∕進修別`),
+    等級別=as.factor(等級別),
+    一年級男生=parse_number(一年級男生,locale=cl),
+    一年級女生=parse_number(一年級女生,locale=cl),
+    一年級男生每千人=一年級男生/1000,
+    一年級女生每千人=一年級女生/1000
+    ) -> collegeData6
+```
+```{r}
+head(collegeData5[,c("一年級男生","一年級女生","一年級男生每千人","一年級女生每千人")])
+
+head(collegeData6[,c("一年級男生","一年級女生","一年級男生每千人","一年級女生每千人")])
+```
+
+
