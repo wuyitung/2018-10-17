@@ -1,0 +1,169 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r}
+library(readr)
+transcriptData <- read_csv("https://raw.githubusercontent.com/tpemartin/github-data/master/transcript100_102.csv",
+                  col_types = cols(
+                    學期成績="n"
+                  ))
+
+totalCredits<-function(x){
+  transcriptData[transcriptData$學號==x,]->subsample 
+  subsample %>%
+    mutate(
+      及格=(學期成績>=60)
+    ) %>%
+    summarise(
+      學號=學號[1],
+      總修習學分數=sum(學分數),
+      總實得學分數=sum(學分數[及格])
+    )  
+}
+```
+
+```{r}
+transcriptData %>%
+  filter(學屆==100,str_sub(學號,5,6)=="P1") -> subsample
+subsample$學號 %>% unique -> 符合條件學號
+```
+
+```{r}
+creditResults<-vector("list",length(符合條件學號))
+```
+
+```{r}
+for(i in seq_along(符合條件學號)){
+  creditResults[[i]] <- totalCredits(符合條件學號[i])
+}
+```
+
+```{r}
+filmVotingData[,c("Timestamp","請選擇你最喜歡的影片二部")]
+
+filmVotingData[c("Timestamp","請選擇你最喜歡的影片二部")]
+```
+
+```{r}
+library(readr)
+library(tidyr)
+libraryData <- read_csv("https://raw.githubusercontent.com/tpemartin/github-data/master/libraryData2.csv")
+libraryData %>%
+  group_by(學院) %>%
+  nest(.key="各院借閱資料") ->
+  libraryDataNested
+```
+
+```{r}
+df <- data.frame(
+  x = 1:3,
+  y = c("a", "d,e,f", "g,h"),
+  z = c("A","A","B"),
+  stringsAsFactors = F
+)
+df %>% 
+  group_by(z) %>%
+  nest -> dfNested
+```
+
+```{r}
+library(dplyr)
+df <- data.frame(
+  x = 1:3,
+  y = c("a", "d,e,f", "g,h"),
+  stringsAsFactors = F
+)
+df %>%
+  mutate(y = str_split(y, ",")) -> dfSplit
+```
+
+```{r}
+libraryDataNested %>%
+  filter(學院=="公共事務學院") -> subsample_i
+subsample_i$各院借閱資料 %>% class
+```
+
+```{r}
+libraryDataNested$學院->collegeList
+
+#0. 創造資訊儲存容器。（allSummaryStat）
+allSummaryStat <- vector("list",length(collegeList))
+for(i in seq_along(collegeList)){
+  #  1. 第i個學院的值是什麼？(存在`college_i`物件)
+  college_i<-collegeList[[i]]
+  #  2. 如何選出符合i學院要求的資料？(存在`subsample_i`物件)
+  logiIndex<-(libraryDataNested$學院==college_i)
+  libraryDataNested[logiIndex, ] -> subsample_i
+  #  3. 選出上述的子樣本後要如何算出`summaryStat_i`
+  subsample_i$各院借閱資料[[1]] %>%
+    group_by(學號) %>%
+    summarise(
+      個別學生總借閱量=n(),
+    ) -> result1_i
+  result1_i %>% 
+    summarise(
+    平均學生借閱量=mean(個別學生總借閱量),
+    中位學生借閱量=median(個別學生總借閱量),
+    最大學生借閱量=max(個別學生總借閱量),
+    ) -> summaryStat_i  
+  #  4. 把summaryStat_i存在allSummaryStat的第i個位置。
+  allSummaryStat[[i]]<-summaryStat_i
+}
+names(allSummaryStat) <- collegeList
+```
+
+```{r}
+collegeSummary<-function(i){
+  #  1. 第i個學院的值是什麼？(存在`college_i`物件)
+  college_i<-collegeList[[i]]
+  #  2. 如何選出符合i學院要求的資料？(存在`subsample_i`物件)
+  logiIndex<-(libraryDataNested$學院==college_i)
+  libraryDataNested[logiIndex, ] -> subsample_i
+  #  3. 選出上述的子樣本後要如何算出`summaryStat_i`
+  subsample_i$各院借閱資料[[1]] %>%
+    group_by(學號) %>%
+    summarise(
+      個別學生總借閱量=n(),
+    ) -> result1_i
+  result1_i %>% 
+    summarise(
+    平均學生借閱量=mean(個別學生總借閱量),
+    中位學生借閱量=median(個別學生總借閱量),
+    最大學生借閱量=max(個別學生總借閱量),
+    ) -> summaryStat_i  
+  return(summaryStat_i)
+}
+```
+
+```{r}
+libraryDataNested$學院->collegeList
+
+#0. 創造資訊儲存容器。（allSummaryStat）
+allSummaryStat <- vector("list",length(collegeList))
+for(i in seq_along(collegeList)){
+  # 4. 把summaryStat_i存在allSummaryStat的第i個位置。
+  allSummaryStat[[i]]<-collegeSummary(i)
+}  
+```
+
+```{r}
+libraryDataNested$學院->collegeList
+
+allSummaryStat <- map(seq_along(collegeList),collegeSummary)
+```
+
+```{r}
+# 直接把輸出以 r(ow) 堆疊成 data frame. 
+allSummaryStat2<-map_dfr(seq_along(collegeList),collegeSummary)
+
+# 再加上**學院**變數
+allSummaryStat2 %>%
+  mutate(
+    學院=collegeList
+  ) -> allSummaryStat2
+allSummaryStat2 
+```
+
